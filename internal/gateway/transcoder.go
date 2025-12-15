@@ -42,8 +42,8 @@ func TranscodeCancelOrder(ctx context.Context,
 ) (interface{}, error) {
 
 	var p struct {
-		status     string `json:"status"`
-		statusCode int    `json:"statusCode"`
+		Status     string `json:"status"`
+		StatusCode int    `json:"statusCode"`
 	}
 
 	if err := json.Unmarshal(params, &p); err != nil {
@@ -51,8 +51,8 @@ func TranscodeCancelOrder(ctx context.Context,
 	}
 
 	resp, err := client.CancelService.CancelOrder(ctx, &pb.CancelOrderRequest{
-		Status:     p.status,
-		StatusCode: int32(p.statusCode),
+		Status:     p.Status,
+		StatusCode: int32(p.StatusCode),
 	})
 	if err != nil {
 		return nil, err

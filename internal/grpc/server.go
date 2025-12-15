@@ -2,6 +2,8 @@ package grpc
 
 import (
 	"context"
+	"fmt"
+	"strconv"
 
 	pb "jrpc/internal/grpc/pb"
 )
@@ -17,7 +19,8 @@ func (s *OrderServer) CreateOrder(
 ) (*pb.CreateOrderResponse, error) {
 
 	return &pb.CreateOrderResponse{
-		Status: "order " + req.Id + " created",
+		Status:     "order " + req.Id + " created",
+		StatusCode: 201,
 	}, nil
 }
 
@@ -26,8 +29,10 @@ func (s *OrderServer) CancelOrder(
 	req *pb.CancelOrderRequest,
 ) (*pb.CancelOrderResponse, error) {
 
+	fmt.Println("printing req status : " + req.Status)
+	fmt.Println("Printing Req satus code : " + strconv.Itoa(int(req.StatusCode)))
 	return &pb.CancelOrderResponse{
-		Status:     "order cancelled",
-		StatusCode: 200,
+		Status:     "order" + req.Status + "cancelled",
+		StatusCode: req.StatusCode,
 	}, nil
 }
