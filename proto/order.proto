@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package order;
+
+option go_package = "taskzeroone/internal/grpc/pb";
+
+service OrderService {
+  rpc CreateOrder (CreateOrderRequest) returns (CreateOrderResponse);
+}
+service CancelService{
+    rpc CancelOrder (CancelOrderRequest) returns (CancelOrderResponse);
+}
+
+message CreateOrderRequest {
+  string id = 1;
+}
+
+message CreateOrderResponse {
+  string status = 1;
+  int32 statusCode = 2;
+}
+message CancelOrderRequest {
+    string status = 1;
+    int32 statusCode = 2;
+}
+
+message CancelOrderResponse {
+  string status = 1;
+  int32 statusCode = 2;
+  
+}
