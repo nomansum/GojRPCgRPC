@@ -17,8 +17,10 @@ func main() {
 	}
 
 	server := grpc.NewServer()
-	pb.RegisterOrderServiceServer(server, &grpcsvc.OrderServer{})
-	pb.RegisterCancelServiceServer(server, &grpcsvc.OrderServer{})
+	orderSvc := &grpcsvc.OrderServer{}
+
+	pb.RegisterOrderServiceServer(server, orderSvc)
+	pb.RegisterCancelServiceServer(server, orderSvc)
 	log.Println("gRPC service running on :50051")
 	server.Serve(lis)
 }
