@@ -3,7 +3,6 @@ package gateway
 import (
 	"context"
 	"encoding/json"
-	"strconv"
 
 	"jrpc/internal/grpc"
 	pb "jrpc/internal/grpc/pb"
@@ -16,7 +15,7 @@ func TranscodeCreateOrder(
 ) (interface{}, error) {
 
 	var p struct {
-		ID string `json:"id"`
+		ID int32 `json:"id"`
 	}
 
 	if err := json.Unmarshal(params, &p); err != nil {
@@ -30,9 +29,9 @@ func TranscodeCreateOrder(
 		return nil, err
 	}
 
-	return map[string]string{
-		"status":     resp.Status,
-		"statusCode": strconv.Itoa(int(resp.StatusCode)),
+	return map[string]interface{}{
+		"statusCode": resp.StatusCode,
+		"msg":        resp.Msg,
 	}, nil
 }
 
@@ -42,8 +41,7 @@ func TranscodeCancelOrder(ctx context.Context,
 ) (interface{}, error) {
 
 	var p struct {
-		Status     string `json:"status"`
-		StatusCode int    `json:"statusCode"`
+		ID int32 `json:"id"`
 	}
 
 	if err := json.Unmarshal(params, &p); err != nil {
@@ -51,16 +49,15 @@ func TranscodeCancelOrder(ctx context.Context,
 	}
 
 	resp, err := client.CancelService.CancelOrder(ctx, &pb.CancelOrderRequest{
-		Status:     p.Status,
-		StatusCode: int32(p.StatusCode),
+		Id: p.ID,
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	return map[string]string{
-		"status":     resp.Status,
-		"statusCode": strconv.Itoa(int(resp.StatusCode)),
+	return map[string]interface{}{
+		"statusCode": resp.StatusCode,
+		"msg":        resp.Msg,
 	}, nil
 
 }

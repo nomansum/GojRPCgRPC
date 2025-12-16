@@ -17,7 +17,7 @@ func main() {
 	}
 
 	server := grpc.NewServer()
-	orderSvc := &grpcsvc.OrderServer{}
+	orderSvc := grpcsvc.NewOrderServer()
 
 	pb.RegisterOrderServiceServer(server, orderSvc)
 	pb.RegisterCancelServiceServer(server, orderSvc)

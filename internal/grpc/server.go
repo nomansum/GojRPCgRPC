@@ -2,7 +2,6 @@ package grpc
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 
 	pb "jrpc/internal/grpc/pb"
@@ -11,6 +10,13 @@ import (
 type OrderServer struct {
 	pb.UnimplementedOrderServiceServer
 	pb.UnimplementedCancelServiceServer
+	orders map[int32]bool // added 16 th Dec.
+}
+
+func NewOrderServer() *OrderServer {
+	return &OrderServer{
+		orders: make(map[int32]bool),
+	}
 }
 
 func (s *OrderServer) CreateOrder(
@@ -18,9 +24,18 @@ func (s *OrderServer) CreateOrder(
 	req *pb.CreateOrderRequest,
 ) (*pb.CreateOrderResponse, error) {
 
+	if _, ok := s.orders[req.Id]; !ok {
+		s.orders[req.Id] = true
+		msg := "Order " + strconv.Itoa(int(req.Id)) + " Created Successfully"
+		return &pb.CreateOrderResponse{
+			StatusCode: int32(201),
+			Msg:        msg,
+		}, nil
+	}
+
 	return &pb.CreateOrderResponse{
-		Status:     "order " + req.Id + " created",
-		StatusCode: 201,
+		StatusCode: 404,
+		Msg:        "Order Already Exists!!!",
 	}, nil
 }
 
@@ -29,10 +44,15 @@ func (s *OrderServer) CancelOrder(
 	req *pb.CancelOrderRequest,
 ) (*pb.CancelOrderResponse, error) {
 
-	fmt.Println("printing req status : " + req.Status)
-	fmt.Println("Printing Req satus code : " + strconv.Itoa(int(req.StatusCode)))
+	if _, ok := s.orders[req.Id]; !ok {
+		return &pb.CancelOrderResponse{
+			StatusCode: 404,
+			Msg:        "No such order was created",
+		}, nil
+	}
+	delete(s.orders, req.Id)
 	return &pb.CancelOrderResponse{
-		Status:     "order" + req.Status + "cancelled",
-		StatusCode: req.StatusCode,
+		StatusCode: 200,
+		Msg:        "Order " + strconv.Itoa(int(req.Id)) + " is cacelled !. ",
 	}, nil
 }

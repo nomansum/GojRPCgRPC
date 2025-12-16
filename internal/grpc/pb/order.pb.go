@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v3.21.12
-// source: proto/order.proto
+// source: internal/grpc/pb/order.proto
 
 package pb
 
@@ -23,14 +23,14 @@ const (
 
 type CreateOrderRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Id            int32                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *CreateOrderRequest) Reset() {
 	*x = CreateOrderRequest{}
-	mi := &file_proto_order_proto_msgTypes[0]
+	mi := &file_internal_grpc_pb_order_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -42,7 +42,7 @@ func (x *CreateOrderRequest) String() string {
 func (*CreateOrderRequest) ProtoMessage() {}
 
 func (x *CreateOrderRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_order_proto_msgTypes[0]
+	mi := &file_internal_grpc_pb_order_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -55,27 +55,28 @@ func (x *CreateOrderRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateOrderRequest.ProtoReflect.Descriptor instead.
 func (*CreateOrderRequest) Descriptor() ([]byte, []int) {
-	return file_proto_order_proto_rawDescGZIP(), []int{0}
+	return file_internal_grpc_pb_order_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *CreateOrderRequest) GetId() string {
+func (x *CreateOrderRequest) GetId() int32 {
 	if x != nil {
 		return x.Id
 	}
-	return ""
+	return 0
 }
 
 type CreateOrderResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Status        string                 `protobuf:"bytes,1,opt,name=status,proto3" json:"status,omitempty"`
-	StatusCode    int32                  `protobuf:"varint,2,opt,name=statusCode,proto3" json:"statusCode,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// string status = 1;
+	StatusCode    int32  `protobuf:"varint,1,opt,name=statusCode,proto3" json:"statusCode,omitempty"`
+	Msg           string `protobuf:"bytes,2,opt,name=msg,proto3" json:"msg,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *CreateOrderResponse) Reset() {
 	*x = CreateOrderResponse{}
-	mi := &file_proto_order_proto_msgTypes[1]
+	mi := &file_internal_grpc_pb_order_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -87,7 +88,7 @@ func (x *CreateOrderResponse) String() string {
 func (*CreateOrderResponse) ProtoMessage() {}
 
 func (x *CreateOrderResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_order_proto_msgTypes[1]
+	mi := &file_internal_grpc_pb_order_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -100,14 +101,7 @@ func (x *CreateOrderResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateOrderResponse.ProtoReflect.Descriptor instead.
 func (*CreateOrderResponse) Descriptor() ([]byte, []int) {
-	return file_proto_order_proto_rawDescGZIP(), []int{1}
-}
-
-func (x *CreateOrderResponse) GetStatus() string {
-	if x != nil {
-		return x.Status
-	}
-	return ""
+	return file_internal_grpc_pb_order_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *CreateOrderResponse) GetStatusCode() int32 {
@@ -117,17 +111,24 @@ func (x *CreateOrderResponse) GetStatusCode() int32 {
 	return 0
 }
 
+func (x *CreateOrderResponse) GetMsg() string {
+	if x != nil {
+		return x.Msg
+	}
+	return ""
+}
+
 type CancelOrderRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Status        string                 `protobuf:"bytes,1,opt,name=status,proto3" json:"status,omitempty"`
-	StatusCode    int32                  `protobuf:"varint,2,opt,name=statusCode,proto3" json:"statusCode,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// string status = 1;
+	Id            int32 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *CancelOrderRequest) Reset() {
 	*x = CancelOrderRequest{}
-	mi := &file_proto_order_proto_msgTypes[2]
+	mi := &file_internal_grpc_pb_order_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -139,7 +140,7 @@ func (x *CancelOrderRequest) String() string {
 func (*CancelOrderRequest) ProtoMessage() {}
 
 func (x *CancelOrderRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_order_proto_msgTypes[2]
+	mi := &file_internal_grpc_pb_order_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -152,34 +153,28 @@ func (x *CancelOrderRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CancelOrderRequest.ProtoReflect.Descriptor instead.
 func (*CancelOrderRequest) Descriptor() ([]byte, []int) {
-	return file_proto_order_proto_rawDescGZIP(), []int{2}
+	return file_internal_grpc_pb_order_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *CancelOrderRequest) GetStatus() string {
+func (x *CancelOrderRequest) GetId() int32 {
 	if x != nil {
-		return x.Status
-	}
-	return ""
-}
-
-func (x *CancelOrderRequest) GetStatusCode() int32 {
-	if x != nil {
-		return x.StatusCode
+		return x.Id
 	}
 	return 0
 }
 
 type CancelOrderResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Status        string                 `protobuf:"bytes,1,opt,name=status,proto3" json:"status,omitempty"`
-	StatusCode    int32                  `protobuf:"varint,2,opt,name=statusCode,proto3" json:"statusCode,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// string status = 1;
+	StatusCode    int32  `protobuf:"varint,1,opt,name=statusCode,proto3" json:"statusCode,omitempty"`
+	Msg           string `protobuf:"bytes,2,opt,name=msg,proto3" json:"msg,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *CancelOrderResponse) Reset() {
 	*x = CancelOrderResponse{}
-	mi := &file_proto_order_proto_msgTypes[3]
+	mi := &file_internal_grpc_pb_order_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -191,7 +186,7 @@ func (x *CancelOrderResponse) String() string {
 func (*CancelOrderResponse) ProtoMessage() {}
 
 func (x *CancelOrderResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_order_proto_msgTypes[3]
+	mi := &file_internal_grpc_pb_order_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -204,14 +199,7 @@ func (x *CancelOrderResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CancelOrderResponse.ProtoReflect.Descriptor instead.
 func (*CancelOrderResponse) Descriptor() ([]byte, []int) {
-	return file_proto_order_proto_rawDescGZIP(), []int{3}
-}
-
-func (x *CancelOrderResponse) GetStatus() string {
-	if x != nil {
-		return x.Status
-	}
-	return ""
+	return file_internal_grpc_pb_order_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *CancelOrderResponse) GetStatusCode() int32 {
@@ -221,53 +209,57 @@ func (x *CancelOrderResponse) GetStatusCode() int32 {
 	return 0
 }
 
-var File_proto_order_proto protoreflect.FileDescriptor
+func (x *CancelOrderResponse) GetMsg() string {
+	if x != nil {
+		return x.Msg
+	}
+	return ""
+}
 
-const file_proto_order_proto_rawDesc = "" +
+var File_internal_grpc_pb_order_proto protoreflect.FileDescriptor
+
+const file_internal_grpc_pb_order_proto_rawDesc = "" +
 	"\n" +
-	"\x11proto/order.proto\x12\x05order\"$\n" +
+	"\x1cinternal/grpc/pb/order.proto\x12\x05order\"$\n" +
 	"\x12CreateOrderRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\"M\n" +
-	"\x13CreateOrderResponse\x12\x16\n" +
-	"\x06status\x18\x01 \x01(\tR\x06status\x12\x1e\n" +
+	"\x02id\x18\x01 \x01(\x05R\x02id\"G\n" +
+	"\x13CreateOrderResponse\x12\x1e\n" +
 	"\n" +
-	"statusCode\x18\x02 \x01(\x05R\n" +
-	"statusCode\"L\n" +
-	"\x12CancelOrderRequest\x12\x16\n" +
-	"\x06status\x18\x01 \x01(\tR\x06status\x12\x1e\n" +
+	"statusCode\x18\x01 \x01(\x05R\n" +
+	"statusCode\x12\x10\n" +
+	"\x03msg\x18\x02 \x01(\tR\x03msg\"$\n" +
+	"\x12CancelOrderRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x05R\x02id\"G\n" +
+	"\x13CancelOrderResponse\x12\x1e\n" +
 	"\n" +
-	"statusCode\x18\x02 \x01(\x05R\n" +
-	"statusCode\"M\n" +
-	"\x13CancelOrderResponse\x12\x16\n" +
-	"\x06status\x18\x01 \x01(\tR\x06status\x12\x1e\n" +
-	"\n" +
-	"statusCode\x18\x02 \x01(\x05R\n" +
-	"statusCode2T\n" +
+	"statusCode\x18\x01 \x01(\x05R\n" +
+	"statusCode\x12\x10\n" +
+	"\x03msg\x18\x02 \x01(\tR\x03msg2T\n" +
 	"\fOrderService\x12D\n" +
 	"\vCreateOrder\x12\x19.order.CreateOrderRequest\x1a\x1a.order.CreateOrderResponse2U\n" +
 	"\rCancelService\x12D\n" +
 	"\vCancelOrder\x12\x19.order.CancelOrderRequest\x1a\x1a.order.CancelOrderResponseB\x1eZ\x1ctaskzeroone/internal/grpc/pbb\x06proto3"
 
 var (
-	file_proto_order_proto_rawDescOnce sync.Once
-	file_proto_order_proto_rawDescData []byte
+	file_internal_grpc_pb_order_proto_rawDescOnce sync.Once
+	file_internal_grpc_pb_order_proto_rawDescData []byte
 )
 
-func file_proto_order_proto_rawDescGZIP() []byte {
-	file_proto_order_proto_rawDescOnce.Do(func() {
-		file_proto_order_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_proto_order_proto_rawDesc), len(file_proto_order_proto_rawDesc)))
+func file_internal_grpc_pb_order_proto_rawDescGZIP() []byte {
+	file_internal_grpc_pb_order_proto_rawDescOnce.Do(func() {
+		file_internal_grpc_pb_order_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_internal_grpc_pb_order_proto_rawDesc), len(file_internal_grpc_pb_order_proto_rawDesc)))
 	})
-	return file_proto_order_proto_rawDescData
+	return file_internal_grpc_pb_order_proto_rawDescData
 }
 
-var file_proto_order_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
-var file_proto_order_proto_goTypes = []any{
+var file_internal_grpc_pb_order_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_internal_grpc_pb_order_proto_goTypes = []any{
 	(*CreateOrderRequest)(nil),  // 0: order.CreateOrderRequest
 	(*CreateOrderResponse)(nil), // 1: order.CreateOrderResponse
 	(*CancelOrderRequest)(nil),  // 2: order.CancelOrderRequest
 	(*CancelOrderResponse)(nil), // 3: order.CancelOrderResponse
 }
-var file_proto_order_proto_depIdxs = []int32{
+var file_internal_grpc_pb_order_proto_depIdxs = []int32{
 	0, // 0: order.OrderService.CreateOrder:input_type -> order.CreateOrderRequest
 	2, // 1: order.CancelService.CancelOrder:input_type -> order.CancelOrderRequest
 	1, // 2: order.OrderService.CreateOrder:output_type -> order.CreateOrderResponse
@@ -279,26 +271,26 @@ var file_proto_order_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for field type_name
 }
 
-func init() { file_proto_order_proto_init() }
-func file_proto_order_proto_init() {
-	if File_proto_order_proto != nil {
+func init() { file_internal_grpc_pb_order_proto_init() }
+func file_internal_grpc_pb_order_proto_init() {
+	if File_internal_grpc_pb_order_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_order_proto_rawDesc), len(file_proto_order_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_internal_grpc_pb_order_proto_rawDesc), len(file_internal_grpc_pb_order_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   2,
 		},
-		GoTypes:           file_proto_order_proto_goTypes,
-		DependencyIndexes: file_proto_order_proto_depIdxs,
-		MessageInfos:      file_proto_order_proto_msgTypes,
+		GoTypes:           file_internal_grpc_pb_order_proto_goTypes,
+		DependencyIndexes: file_internal_grpc_pb_order_proto_depIdxs,
+		MessageInfos:      file_internal_grpc_pb_order_proto_msgTypes,
 	}.Build()
-	File_proto_order_proto = out.File
-	file_proto_order_proto_goTypes = nil
-	file_proto_order_proto_depIdxs = nil
+	File_internal_grpc_pb_order_proto = out.File
+	file_internal_grpc_pb_order_proto_goTypes = nil
+	file_internal_grpc_pb_order_proto_depIdxs = nil
 }
