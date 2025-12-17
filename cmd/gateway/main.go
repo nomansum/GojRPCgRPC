@@ -19,13 +19,16 @@ func main() {
 	// }
 
 	//client := pb.NewOrderServiceClient(conn)
-	client := grpc.NewClient("localhost:50051")
+	client := grpc.NewClient("grpc:50051")
 
 	http.HandleFunc("/rpc", func(w http.ResponseWriter, r *http.Request) {
 		gateway.HandleJSONRPC(w, r, client)
 	})
 
 	log.Println("JSON-RPC gateway running on :8080")
-	http.ListenAndServe(":8080", nil)
+	err := http.ListenAndServe(":8080", nil)
+	if err != nil {
+		log.Println("Server failed to start at 8080")
+	}
 
 }

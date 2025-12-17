@@ -3,6 +3,7 @@ package gateway
 import (
 	"encoding/json"
 	"errors"
+	"log"
 	"net/http"
 
 	"jrpc/internal/grpc"
@@ -23,6 +24,7 @@ func HandleJSONRPC(
 		result interface{}
 		err    error
 	)
+	log.Println("incoming JSON-RPC request", "method=", req.Method)
 
 	switch req.Method {
 	case "CreateOrder":

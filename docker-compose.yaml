@@ -1,0 +1,39 @@
+version: "3.9"
+
+services:
+  grpc:
+    build:
+      context: .
+      dockerfile: Dockerfile.grpc
+    ports:
+      - "50051:50051"
+      - "2112:2112"
+    networks:
+      - app-net
+
+  jrpc:
+    build:
+      context: .
+      dockerfile: Dockerfile.jrpc
+    ports:
+      - "8080:8080"
+    depends_on:
+      - grpc
+    networks:
+      - app-net
+
+  grpc-gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile.grpcgateway
+    ports:
+      - "8081:8081"
+    depends_on:
+      - grpc
+    networks:
+      - app-net
+
+networks:
+  app-net:
+    external: true
+  

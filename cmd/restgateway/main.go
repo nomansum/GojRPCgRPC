@@ -23,19 +23,22 @@ func main() {
 	err := pb.RegisterOrderServiceHandlerFromEndpoint(
 		ctx,
 		mux,
-		"localhost:50051",
+		"grpc:50051",
 		opts,
 	)
 	err = pb.RegisterCancelServiceHandlerFromEndpoint(
 		ctx,
 		mux,
-		"localhost:50051",
+		"grpc:50051",
 		opts,
 	)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("REST gRPC-Gateway running on : 8081")
-	http.ListenAndServe(":8081", mux)
+	serverError := http.ListenAndServe(":8081", mux)
+	if serverError != nil {
+		log.Println("Server Error>> Can't start REST gRPC-Gateway")
+	}
 
 }

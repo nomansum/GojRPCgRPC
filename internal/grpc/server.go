@@ -2,9 +2,11 @@ package grpc
 
 import (
 	"context"
+	"log"
 	"strconv"
 
 	pb "jrpc/internal/grpc/pb"
+	"jrpc/internal/observability"
 )
 
 type OrderServer struct {
@@ -27,6 +29,8 @@ func (s *OrderServer) CreateOrder(
 	if _, ok := s.orders[req.Id]; !ok {
 		s.orders[req.Id] = true
 		msg := "Order " + strconv.Itoa(int(req.Id)) + " Created Successfully"
+		log.Println("CreateOrder success", "order_id= ", req.Id)
+		observability.OrdersCreated.Inc()
 		return &pb.CreateOrderResponse{
 			StatusCode: int32(201),
 			Msg:        msg,
@@ -51,6 +55,7 @@ func (s *OrderServer) CancelOrder(
 		}, nil
 	}
 	delete(s.orders, req.Id)
+
 	return &pb.CancelOrderResponse{
 		StatusCode: 200,
 		Msg:        "Order " + strconv.Itoa(int(req.Id)) + " is cacelled !. ",
