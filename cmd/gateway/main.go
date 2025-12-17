@@ -27,4 +27,5 @@ func main() {
 
 	log.Println("JSON-RPC gateway running on :8080")
 	http.ListenAndServe(":8080", nil)
+
 }

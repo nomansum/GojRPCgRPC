@@ -1,14 +1,24 @@
 syntax = "proto3";
 
-package order;
+package order.v1;
 
 option go_package = "taskzeroone/internal/grpc/pb";
+import "google.api/annotations.proto";
 
 service OrderService {
-  rpc CreateOrder (CreateOrderRequest) returns (CreateOrderResponse);
+  rpc CreateOrder (CreateOrderRequest) returns (CreateOrderResponse){
+    option (google.api.http) = {
+      post:"/v1/orders"
+      body: "*"
+    }
+  };
 }
 service CancelService{
-    rpc CancelOrder (CancelOrderRequest) returns (CancelOrderResponse);
+    rpc CancelOrder (CancelOrderRequest) returns (CancelOrderResponse){
+      option (googlel.api.http) = {
+        delete: "/v1/orders/{id}"
+      }
+    };
 }
 
 message CreateOrderRequest {

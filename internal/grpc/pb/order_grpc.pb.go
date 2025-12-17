@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.0
 // - protoc             v3.21.12
-// source: internal/grpc/pb/order.proto
+// source: order.proto
 
 package pb
 
@@ -19,7 +19,7 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	OrderService_CreateOrder_FullMethodName = "/order.OrderService/CreateOrder"
+	OrderService_CreateOrder_FullMethodName = "/order.v1.OrderService/CreateOrder"
 )
 
 // OrderServiceClient is the client API for OrderService service.
@@ -108,7 +108,7 @@ func _OrderService_CreateOrder_Handler(srv interface{}, ctx context.Context, dec
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var OrderService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "order.OrderService",
+	ServiceName: "order.v1.OrderService",
 	HandlerType: (*OrderServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -117,11 +117,11 @@ var OrderService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "internal/grpc/pb/order.proto",
+	Metadata: "order.proto",
 }
 
 const (
-	CancelService_CancelOrder_FullMethodName = "/order.CancelService/CancelOrder"
+	CancelService_CancelOrder_FullMethodName = "/order.v1.CancelService/CancelOrder"
 )
 
 // CancelServiceClient is the client API for CancelService service.
@@ -210,7 +210,7 @@ func _CancelService_CancelOrder_Handler(srv interface{}, ctx context.Context, de
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var CancelService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "order.CancelService",
+	ServiceName: "order.v1.CancelService",
 	HandlerType: (*CancelServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -219,5 +219,5 @@ var CancelService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "internal/grpc/pb/order.proto",
+	Metadata: "order.proto",
 }

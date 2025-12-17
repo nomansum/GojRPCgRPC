@@ -15,3 +15,7 @@ type Response struct {
 	Error   interface{} `json:"error,omitempty"`
 	ID      int         `json:"id"`
 }
+
+type RestRequest struct {
+	ID int `json:"id"`
+}
