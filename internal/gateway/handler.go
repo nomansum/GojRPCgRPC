@@ -33,9 +33,17 @@ func HandleJSONRPC(
 		err = errors.New("method not found")
 	}
 
+	var p struct {
+		ID int32 `json:"id"`
+	}
+
+	if err := json.Unmarshal(req.Params, &p); err != nil {
+		p.ID = -1
+	}
+
 	resp := Response{
 		JSONRPC: "2.0",
-		ID:      req.ID,
+		ID:      int(p.ID),
 		Result:  result,
 	}
 
