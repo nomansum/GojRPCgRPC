@@ -18,11 +18,9 @@ import (
 func main() {
 	observability.Init()
 
-	// Create gRPC metrics
 	grpcMetrics := grpcprom.NewServerMetrics()
 	grpcMetrics.EnableHandlingTimeHistogram()
 
-	// Register safely — ignore ANY error (the most common and safe pattern)
 	if err := prometheus.Register(grpcMetrics); err != nil {
 		log.Printf("Note: gRPC Prometheus metrics registration skipped (likely already registered): %v", err)
 		// Do NOT fatal — the metrics will still work if already registered
@@ -30,7 +28,6 @@ func main() {
 		log.Println("gRPC Prometheus metrics registered successfully")
 	}
 
-	// Metrics endpoint
 	go func() {
 		log.Println("Metrics server started on :2112")
 		http.Handle("/metrics", promhttp.Handler())
