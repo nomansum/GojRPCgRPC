@@ -1,11 +1,10 @@
 package main
 
 import (
-	"log"
-	"net/http"
-
 	"jrpc/internal/gateway"
 	"jrpc/internal/grpc"
+	"log"
+	"net/http"
 	//"google.golang.org/grpc"
 )
 
