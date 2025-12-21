@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jrpc
+  namespace: app-ns
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jrpc
+  template:
+    metadata:
+      labels:
+        app: jrpc
+    spec:
+      containers:
+      - name: jrpc
+        image: jrpc-server:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8080
+        

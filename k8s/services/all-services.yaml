@@ -1,0 +1,141 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: app-ns
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grpc
+  namespace: app-ns
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grpc
+  template:
+    metadata:
+      labels:
+        app: grpc
+    spec:
+      containers:
+      - name: grpc
+        image: grpc-server:latest
+        imagePullPolicy: Never  # Important: uses your locally built image
+        ports:
+        - containerPort: 50051
+        - containerPort: 2112
+        readinessProbe:
+          tcpSocket:
+            port: 50051
+          initialDelaySeconds: 10
+          periodSeconds: 10
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: grpc
+  namespace: app-ns
+spec:
+  selector:
+    app: grpc
+  type: NodePort
+  ports:
+  - name: grpc
+    port: 50051
+    targetPort: 50051
+    nodePort: 30051   # Access via <NodeIP>:30051
+  - name: metrics
+    port: 2112
+    targetPort: 2112
+    nodePort: 32112   # Optional: direct access to metrics
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jrpc
+  namespace: app-ns
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jrpc
+  template:
+    metadata:
+      labels:
+        app: jrpc
+    spec:
+      containers:
+      - name: jrpc
+        image: jrpc-server:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8080
+        
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: jrpc
+  namespace: app-ns
+spec:
+  selector:
+    app: jrpc
+  type: NodePort
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+    nodePort: 30080   # Access via <NodeIP>:30080
+
+
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grpc-gateway
+  namespace: app-ns
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grpc-gateway
+  template:
+    metadata:
+      labels:
+        app: grpc-gateway
+    spec:
+      containers:
+      - name: grpc-gateway
+        image: grpc-gateway:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8081
+        
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: grpc-gateway
+  namespace: app-ns
+spec:
+  selector:
+    app: grpc-gateway
+  type: NodePort
+  ports:
+  - name: http
+    port: 8081
+    targetPort: 8081
+    nodePort: 30081   # Access via <NodeIP>:30081

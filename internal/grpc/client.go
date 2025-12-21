@@ -10,7 +10,6 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-// Client wraps all gRPC service clients
 type Client struct {
 	conn          *grpc.ClientConn
 	OrderService  pb.OrderServiceClient

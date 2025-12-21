@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grpc-gateway
+  namespace: app-ns
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grpc-gateway
+  template:
+    metadata:
+      labels:
+        app: grpc-gateway
+    spec:
+      containers:
+      - name: grpc-gateway
+        image: grpc-gateway:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8081
+        

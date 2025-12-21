@@ -1,0 +1,715 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+
+    scrape_configs:
+      - job_name: grpc
+        static_configs:
+          - targets: ["grpc:2112"]
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: promtail-config
+data:
+  promtail.yml: |
+    server:
+      http_listen_port: 9080
+      grpc_listen_port: 0
+
+    positions:
+      filename: /tmp/positions.yaml
+
+    clients:
+      - url: http://loki:3100/loki/api/v1/push
+
+    scrape_configs:
+      - job_name: kubernetes-pods
+        kubernetes_sd_configs:
+          - role: pod
+
+        pipeline_stages:
+          - cri: {}
+
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_node_name]
+            target_label: node
+          - source_labels: [__meta_kubernetes_namespace]
+            target_label: namespace
+          - source_labels: [__meta_kubernetes_pod_name]
+            target_label: pod
+          - source_labels: [__meta_kubernetes_pod_container_name]
+            target_label: container
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            target_label: app
+          - action: labelmap
+            regex: __meta_kubernetes_pod_label_(.+)
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grpc
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grpc
+  template:
+    metadata:
+      labels:
+        app: grpc
+    spec:
+      containers:
+        - name: grpc
+          image: grpc-server:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 50051
+              name: grpc
+            - containerPort: 2112
+              name: metrics
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jrpc
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jrpc
+  template:
+    metadata:
+      labels:
+        app: jrpc
+    spec:
+      containers:
+        - name: jrpc
+          image: jrpc-server:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+              name: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grpc-gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grpc-gateway
+  template:
+    metadata:
+      labels:
+        app: grpc-gateway
+    spec:
+      containers:
+        - name: grpc-gateway
+          image: grpc-gateway:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8081
+              name: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prometheus
+  template:
+    metadata:
+      labels:
+        app: prometheus
+    spec:
+      containers:
+        - name: prometheus
+          image: prom/prometheus:latest
+          ports:
+            - containerPort: 9090
+              name: http
+          volumeMounts:
+            - name: config
+              mountPath: /etc/prometheus/prometheus.yml
+              subPath: prometheus.yml
+      volumes:
+        - name: config
+          configMap:
+            name: prometheus-config
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: loki
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: loki
+  template:
+    metadata:
+      labels:
+        app: loki
+    spec:
+      containers:
+        - name: loki
+          image: grafana/loki:latest
+          args:
+            - -config.file=/etc/loki/local-config.yaml
+          ports:
+            - containerPort: 3100
+              name: http
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: promtail
+spec:
+  selector:
+    matchLabels:
+      app: promtail
+  template:
+    metadata:
+      labels:
+        app: promtail
+    spec:
+      serviceAccountName: promtail-sa  # Recommended for proper permissions
+      securityContext:
+        runAsUser: 0
+      containers:
+        - name: promtail
+          image: grafana/promtail:2.9.4
+          args:
+            - -config.file=/etc/promtail/promtail.yml
+          volumeMounts:
+            - name: config
+              mountPath: /etc/promtail/promtail.yml
+              subPath: promtail.yml
+            - name: varlog-pods
+              mountPath: /var/log/pods
+              readOnly: true
+            - name: docker-sock
+              mountPath: /var/run/docker.sock
+            - name: varlib-docker-containers
+              mountPath: /var/lib/docker/containers
+              readOnly: true
+          ports:
+            - containerPort: 9080
+              name: http
+      volumes:
+        - name: config
+          configMap:
+            name: promtail-config
+        - name: varlog-pods
+          hostPath:
+            path: /var/log/pods
+        - name: docker-sock
+          hostPath:
+            path: /var/run/docker.sock
+        - name: varlib-docker-containers
+          hostPath:
+            path: /var/lib/docker/containers
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: promtail-sa
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grafana
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:
+      containers:
+        - name: grafana
+          image: grafana/grafana:latest
+          ports:
+            - containerPort: 3000
+              name: http
+          volumeMounts:
+            - name: provisioning
+              mountPath: /etc/grafana/provisioning
+      volumes:
+        - name: provisioning
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grpc
+spec:
+  selector:
+    app: grpc
+  ports:
+    - port: 50051
+      targetPort: grpc
+      name: grpc
+    - port: 2112
+      targetPort: metrics
+      name: metrics
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jrpc
+spec:
+  type: NodePort
+  selector:
+    app: jrpc
+  ports:
+    - port: 8080
+      targetPort: http
+      nodePort: 30080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grpc-gateway
+spec:
+  type: NodePort
+  selector:
+    app: grpc-gateway
+  ports:
+    - port: 8081
+      targetPort: http
+      nodePort: 30081
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus
+spec:
+  type: NodePort
+  selector:
+    app: prometheus
+  ports:
+    - port: 9090
+      targetPort: http
+      nodePort: 30090
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: loki
+spec:
+  selector:
+    app: loki
+  ports:
+    - port: 3100
+      targetPort: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: promtail
+spec:
+  selector:
+    app: promtail
+  ports:
+    - port: 9080
+      targetPort: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana
+spec:
+  type: NodePort
+  selector:
+    app: grafana
+  ports:
+    - port: 3000
+      targetPort: http
+      nodePort: 30300
+
+
+
+
+
+
+
+
+
+
+
+
+
+# apiVersion: v1
+# kind: ConfigMap
+# metadata:
+#   name: prometheus-config
+# data:
+#   prometheus.yml: |
+#     global:
+#       scrape_interval: 15s
+
+#     scrape_configs:
+#       - job_name: grpc
+#         static_configs:
+#           - targets: ["grpc:2112"]
+# ---
+# apiVersion: v1
+# kind: ConfigMap
+# metadata:
+#   name: promtail-config
+# data:
+#   promtail.yml: |
+#     server:
+#       http_listen_port: 9080
+#       grpc_listen_port: 0
+
+#     positions:
+#       filename: /tmp/positions.yaml
+
+#     clients:
+#       - url: http://loki:3100/loki/api/v1/push
+
+#     scrape_configs:
+#       - job_name: docker
+#         docker_sd_configs:
+#           - host: unix:///var/run/docker.sock
+#             refresh_interval: 5s
+#         relabel_configs:
+#           - source_labels: ['__meta_docker_container_name']
+#             target_label: container_name
+# ---
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: grpc
+# spec:
+#   replicas: 1
+#   selector:
+#     matchLabels:
+#       app: grpc
+#   template:
+#     metadata:
+#       labels:
+#         app: grpc
+#     spec:
+#       containers:
+#         - name: grpc
+#           image: grpc-server:latest
+#           imagePullPolicy: Never  
+#           ports:
+#             - containerPort: 50051
+#               name: grpc
+#             - containerPort: 2112
+#               name: metrics
+# ---
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: jrpc
+# spec:
+#   replicas: 1
+#   selector:
+#     matchLabels:
+#       app: jrpc
+#   template:
+#     metadata:
+#       labels:
+#         app: jrpc
+#     spec:
+#       containers:
+#         - name: jrpc
+#           image: jrpc-server:latest
+#           imagePullPolicy: Never
+#           ports:
+#             - containerPort: 8080
+#               name: http
+# ---
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: grpc-gateway
+# spec:
+#   replicas: 1
+#   selector:
+#     matchLabels:
+#       app: grpc-gateway
+#   template:
+#     metadata:
+#       labels:
+#         app: grpc-gateway
+#     spec:
+#       containers:
+#         - name: grpc-gateway
+#           image: grpc-gateway:latest
+#           imagePullPolicy: Never
+#           ports:
+#             - containerPort: 8081
+#               name: http
+# ---
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: prometheus
+# spec:
+#   replicas: 1
+#   selector:
+#     matchLabels:
+#       app: prometheus
+#   template:
+#     metadata:
+#       labels:
+#         app: prometheus
+#     spec:
+#       containers:
+#         - name: prometheus
+#           image: prom/prometheus:latest
+#           ports:
+#             - containerPort: 9090
+#               name: http
+#           volumeMounts:
+#             - name: config
+#               mountPath: /etc/prometheus/prometheus.yml
+#               subPath: prometheus.yml
+#       volumes:
+#         - name: config
+#           configMap:
+#             name: prometheus-config
+# ---
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: loki
+# spec:
+#   replicas: 1
+#   selector:
+#     matchLabels:
+#       app: loki
+#   template:
+#     metadata:
+#       labels:
+#         app: loki
+#     spec:
+#       containers:
+#         - name: loki
+#           image: grafana/loki:latest
+#           args:
+#             - -config.file=/etc/loki/local-config.yaml
+#           ports:
+#             - containerPort: 3100
+#               name: http
+# ---
+# apiVersion: apps/v1
+# kind: DaemonSet
+# metadata:
+#   name: promtail
+# spec:
+#   selector:
+#     matchLabels:
+#       app: promtail
+#   template:
+#     metadata:
+#       labels:
+#         app: promtail
+#     spec:
+#       securityContext:
+#         runAsUser: 0
+#       containers:
+#         - name: promtail
+#           image: grafana/promtail:2.9.4
+#           args:
+#             - -config.file=/etc/promtail/promtail.yml
+#           volumeMounts:
+#             - name: config
+#               mountPath: /etc/promtail/promtail.yml
+#               subPath: promtail.yml
+#             - name: docker-sock  # You can keep this (harmless) or remove
+#               mountPath: /var/run/docker.sock
+#             - name: varlog-pods  # NEW: for Kubernetes pod logs
+#               mountPath: /var/log/pods
+#               readOnly: true
+#             - name: varlib-docker-containers  # Optional keep, but not needed now
+#               mountPath: /var/lib/docker/containers
+#       volumes:
+#         - name: config
+#           configMap:
+#             name: promtail-config
+#         - name: docker-sock
+#           hostPath:
+#             path: /var/run/docker.sock
+#         - name: varlog-pods  # NEW
+#           hostPath:
+#             path: /var/log/pods
+#         - name: varlib-docker-containers
+#           hostPath:
+#             path: /var/lib/docker/containers
+# # apiVersion: apps/v1
+# # kind: DaemonSet
+# # metadata:
+# #   name: promtail
+# # spec:
+# #   selector:
+# #     matchLabels:
+# #       app: promtail
+# #   template:
+# #     metadata:
+# #       labels:
+# #         app: promtail
+# #     spec:
+# #       securityContext:
+# #         runAsUser: 0
+# #       containers:
+# #         - name: promtail
+# #           image: grafana/promtail:2.9.4
+# #           args:
+# #             - -config.file=/etc/promtail/promtail.yml
+# #           volumeMounts:
+# #             - name: config
+# #               mountPath: /etc/promtail/promtail.yml
+# #               subPath: promtail.yml
+# #             - name: docker-containers
+# #               mountPath: /var/lib/docker/containers
+# #             - name: docker-sock
+# #               mountPath: /var/run/docker.sock
+# #           ports:
+# #             - containerPort: 9080
+# #               name: http
+# #       volumes:
+# #         - name: config
+# #           configMap:
+# #             name: promtail-config
+# #         - name: docker-containers
+# #           hostPath:
+# #             path: /var/lib/docker/containers  
+# #         - name: docker-sock
+# #           hostPath:
+# #             path: /var/run/docker.sock
+# ---
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: grafana
+# spec:
+#   replicas: 1
+#   selector:
+#     matchLabels:
+#       app: grafana
+#   template:
+#     metadata:
+#       labels:
+#         app: grafana
+#     spec:
+#       containers:
+#         - name: grafana
+#           image: grafana/grafana:latest
+#           ports:
+#             - containerPort: 3000
+#               name: http
+#           volumeMounts:
+#             - name: provisioning
+#               mountPath: /etc/grafana/provisioning
+#       volumes:
+#         - name: provisioning
+#           emptyDir: {}  
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: grpc
+# spec:
+#   selector:
+#     app: grpc
+#   ports:
+#     - port: 50051
+#       targetPort: grpc
+#       name: grpc
+#     - port: 2112
+#       targetPort: metrics
+#       name: metrics
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: jrpc
+# spec:
+#   type: NodePort
+#   selector:
+#     app: jrpc
+#   ports:
+#     - port: 8080
+#       targetPort: http
+#       nodePort: 30080  
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: grpc-gateway
+# spec:
+#   type: NodePort
+#   selector:
+#     app: grpc-gateway
+#   ports:
+#     - port: 8081
+#       targetPort: http
+#       nodePort: 30081
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: prometheus
+# spec:
+#   type: NodePort
+#   selector:
+#     app: prometheus
+#   ports:
+#     - port: 9090
+#       targetPort: http
+#       nodePort: 30090
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: loki
+# spec:
+#   selector:
+#     app: loki
+#   ports:
+#     - port: 3100
+#       targetPort: http
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: promtail
+# spec:
+#   selector:
+#     app: promtail
+#   ports:
+#     - port: 9080
+#       targetPort: http
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: grafana
+# spec:
+#   type: NodePort
+#   selector:
+#     app: grafana
+#   ports:
+#     - port: 3000
+#       targetPort: http
+#       nodePort: 30300
